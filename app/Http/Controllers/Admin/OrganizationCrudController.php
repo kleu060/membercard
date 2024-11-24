@@ -6,7 +6,11 @@ use App\Http\Requests\OrganizationRequest;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 use Intervention\Image\Facades\Image as ImageIntervention;
+use Illuminate\Http\Request;
+use App\Services\UploadImageService;
 
+use App\Models\Image as ImageModel;
+use app\Models\Organization;
 
 /**
  * Class OrganizationCrudController
@@ -21,6 +25,15 @@ class OrganizationCrudController extends CrudController
     use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
 
+    use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation { store as traitStore; }
+    use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation { update as traitUpdate; }
+
+    public function __construct(UploadImageService $uploadImageService)
+    {
+        parent::__construct();
+        $this->uploadImageService = $uploadImageService;
+    }
+
     /**
      * Configure the CrudPanel object. Apply settings to all operations.
      * 
@@ -28,6 +41,18 @@ class OrganizationCrudController extends CrudController
      */
     public function setup()
     {
+        
+        if (backpack_user()->can('admin actions')) {
+            CRUD::allowAccess(['list', 'show', 'create', 'update', 'delete']);
+        }
+        else if (backpack_user()->can('organization actions')) {
+            CRUD::denyAccess(['create', 'de;ete']);
+        }
+        else {
+            CRUD::denyAccess(['list', 'show', 'create', 'update', 'delete']);
+        }
+        
+
         CRUD::setModel(\App\Models\Organization::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/organization');
         CRUD::setEntityNameStrings('organization', 'organizations');
@@ -40,15 +65,10 @@ class OrganizationCrudController extends CrudController
      * @return void
      */
     protected function setupListOperation()
-    {
+    {   
+        $organizationId = backpack_user()->relationship_id;
+        CRUD::addBaseClause('where', 'id', '=', $organizationId);
         CRUD::setFromDb(); // set columns from db columns.
-
-        /**
-         * Columns can be defined using the fluent syntax:
-         * - CRUD::column('price')->type('number');
-         */
-
-
 
     }
 
@@ -63,15 +83,15 @@ class OrganizationCrudController extends CrudController
         CRUD::setValidation(OrganizationRequest::class);
         CRUD::setFromDb(); // set fields from db columns.
 
-        // and on subfields:
 
-        CRUD::addField([
-            'name' => 'image',
-            'type' => 'upload',
-            'label' => 'Profile Image',
-            'upload' => true,
-            'disk' => 'public',
-            'path' => 'uploads/profile_images',
+        CRUD::field([   // Upload
+            'name'      => 'image_file',
+            'label'     => 'Image',
+            'type'      => 'view',
+            'view'      => 'vendor.backpack.crud.fields.image_upload',
+            // 'withFiles' => false
+            'disk'      => 'public',
+            // 'path' => 'uploads/profile_images',
         ]);
 
     }
@@ -84,54 +104,87 @@ class OrganizationCrudController extends CrudController
      */
     protected function setupUpdateOperation()
     {
+        $organizationId = backpack_user()->relationship_id;
+
+        // Get the ID of the current entry being accessed
+        $currentEntryId = $this->crud->getCurrentEntryId();
+
+        // Check if the current entry matches the allowed ID
+        if ($currentEntryId != $organizationId) {
+            abort(403, 'You are not allowed to edit this organization.');
+        }
+
+
         $this->setupCreateOperation();
+
+        $Organization = Organization::find(CRUD::getCurrentEntry()->id);
+        $organizationImage = $Organization->image;
+        $thumbnailPath = null;
+        if ( $organizationImage ){
+            $thumbnailPath = $organizationImage->thumbnail_path;
+        }
+
+
+        CRUD::field([   // Upload
+            'name'      => 'image_file',
+            'label'     => 'Image',
+            'type'      => 'view',
+            'view'      => 'vendor.backpack.crud.fields.image_upload',
+            // 'withFiles' => false
+            'disk'      => 'public',
+            'upload'    => true,
+            'attributes' => [
+                'thumbnailPath' => $thumbnailPath
+            ]
+
+        ]);
 
     }
 
 
-    public function store()
+    public function store(Request $request)
     {
         $response = $this->traitStore();
 
-        $this->handleImageUpload();
+
+        if ($request->hasFile('image_file')) {
+            
+            $file = $request->file('image_file');
+            $this->handleImageUplaod($file, $this->crud->entry->id);
+        }
+
         return $response;
     }
 
-    public function update()
+    public function update(Request $request)
     {
         $response = $this->traitUpdate();
 
         // Handle image upload
-        $this->handleImageUpload();
-
+        if ($request->hasFile('image_file')) {
+            $file = $request->file('image_file');
+            $this->handleImageUplaod($file, $this->crud->entry->id);
+        }
+        
         return $response;
     }
 
+    function handleImageUplaod($file, $id){
+        $originalPath = 'uploads/images/' . time() . '_' . preg_replace('/ /' , '', $file->getClientOriginalName());
+        $thumbnailPath = 'uploads/images/thumbnails/' . time() . '_thumb_' . preg_replace('/ /' , '',$file->getClientOriginalName());
+        
+        $imageData = $this->uploadImageService->handleImageUpload($file, $originalPath, $thumbnailPath);
+        $imageModel = ImageModel::create($imageData);
+        // Add the image_id to the request data
+        // $request->merge(['image_id' => $imageModel->id]);
 
-    protected function handleImageUpload()
-    {
-        $request = $this->crud->getRequest();
-
-        if ($request->hasFile('image')) {
-            $image = $request->file('image');
-            $path = $image->store('uploads/profile_images', 'public');
-            $thumbnailPath = 'uploads/profile_images/thumbnails/' . basename($path);
-
-            // Create thumbnail
-            $img = ImageIntervention::make(storage_path("app/public/{$path}"))
-                ->resize(150, 150)
-                ->save(storage_path("app/public/{$thumbnailPath}"));
-
-            // Save image paths to the images table
-            $imageModel = Image::create([
-                'original_path' => $path,
-                'thumbnail_path' => $thumbnailPath,
-            ]);
-
-            // Update the user image_id
-            $user = $this->crud->getCurrentEntry();
-            $user->image_id = $imageModel->id;
-            $user->save();
-        }
+        // dd($this->crud->entry->id);
+        $organization = Organization::find($id);
+        $organization->image_id = $imageModel->id;
+        $organization->save();
+        
     }
+
+
+    
 }

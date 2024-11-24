@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-use App\Models\Individual;
+use App\Models\IndividualProfile;
 
 
 class IndividualTitle extends Model
@@ -13,12 +13,14 @@ class IndividualTitle extends Model
     use HasFactory;
 
     protected $fillable = [
-        'individual_id',
+        'individual_profile_id',
         'title',
+        'sort',
     ];
 
     public function individual(): BelongsTo
     {
-        return $this->belongsTo(Individual::class);
+        return $this->belongsTo(IndividualProfile::class);
     }
+    
 }

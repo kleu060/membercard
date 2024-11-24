@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 use App\Models\Individual;
 
@@ -30,6 +31,7 @@ class Organization extends Model
         'state',
         'zip_code',
         'country',
+        'image_file'
     ];
 
     /**
@@ -43,6 +45,11 @@ class Organization extends Model
     public function user(): MorphMany
     {
         return $this->morphMany('User', 'relationship');
+    }
+
+    public function image(): BelongsTo
+    {
+        return $this->belongsTo(Image::class);
     }
 
 }

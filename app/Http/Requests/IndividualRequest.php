@@ -24,8 +24,13 @@ class IndividualRequest extends FormRequest
      */
     public function rules()
     {
+
+        $id = $this->route('id') ?? $this->input('id'); // Get the current record ID (if updating)
+
         return [
-            // 'name' => 'required|min:5|max:255'
+            'first_name' => 'required',
+            'last_name' => 'required',
+            'route' => 'required|unique:individuals,route,'.$id,
         ];
     }
 

@@ -1,0 +1,21 @@
+// Fonts
+@import url('https://fonts.bunny.net/css?family=Nunito');
+
+// Bootstrap
+@import 'bootstrap/scss/bootstrap';
+
+//Lineawesome
+@import "line-awesome/dist/line-awesome/css/line-awesome.min.css";
+
+
+
+@function rem($value) {
+    $remValue: ($value / 16) + rem;	
+    @return $remValue;
+}
+
+// Variables
+@import 'variables';
+@import 'layout';
+@import 'typography';
+@import 'standard_card';

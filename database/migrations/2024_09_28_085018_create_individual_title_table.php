@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('individual_title', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('individual_id')->nullable()->index();
-            $table->foreignId('title')->nullable()->index();
+            $table->foreignId('individual_profile_id')->nullable()->index();
+            $table->string('title')->nullable();
             $table->timestamps();
         });
     }

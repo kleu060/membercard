@@ -16,15 +16,7 @@ return new class extends Migration
             $table->foreignId('organization_id')->nullable()->index();
             $table->string('first_name');
             $table->string('last_name');
-            $table->date('DOB');
-            $table->string('phone_no')->nullable();
-            $table->string('email_address');
-            $table->string('address_line_1');
-            $table->string('address_line_2')->nullable();
-            $table->string('city');
-            $table->string('state')->nullable();
-            $table->string('zip_code')->nullable();
-            $table->string('country');
+            $table->text('description');
             $table->timestamps();
         });
     }

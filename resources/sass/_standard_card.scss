@@ -1,0 +1,58 @@
+.card-container {
+    max-width: $container-max-wdith;
+    margin: auto;
+
+    .card-header {
+        width: 100%;
+        position: relative;
+        
+        img.banner {
+            width:100%;
+        }
+        
+        .thumbnail-container {
+            position: absolute;
+            bottom:-48px;
+            left: 30px;
+
+            img.thumbnail {
+                
+                width: 96px;
+                height: 96px;
+                object-fit: cover;
+                border-radius: 50%;
+                border: 5px solid white;
+            }
+        }
+    }
+
+    .card-profile-body {
+        padding-top:48px;
+
+        
+    }
+
+    .card-contact-list {
+        padding-top: 10px;
+        padding-bottom: 10px;
+
+        .contact {
+            display: flex;
+            align-items: normal;
+            padding-top: rem(5);
+            padding-bottom: rem(5);
+
+            i {
+                zoom: 1.5;
+                padding-right: 4px;
+            }
+        }
+    }
+    
+    .card-body {
+        
+        padding-left: $container-padding-x;
+        padding-right: $container-padding-x;
+    }
+}
+

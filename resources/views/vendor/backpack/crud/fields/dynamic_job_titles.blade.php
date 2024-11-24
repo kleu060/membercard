@@ -1,4 +1,7 @@
 <div class="form-group">
+<?php //dd( $field['attributes']['titlesArray'] ) ?>
+
+    <input type="hidden" name="job_titles" /> 
     <label>Job Titles</label>
     <div id="job-titles-container">
         <!-- Existing job titles will be populated here -->
@@ -13,9 +16,11 @@
         let addButton = document.getElementById('add-job-title');
         
         // Initialize job titles from the hidden input (if they exist)
-        let jobTitles = JSON.parse(jobTitlesInput.value || '[]');
+        let jobTitles = JSON.parse( @json($field['attributes']['titlesArray']) || '[]');
+        console.log(jobTitles);
         jobTitles.forEach(function(title) {
-            addJobTitleField(title);
+           
+            addJobTitleField(title.title);
         });
 
         // Function to add a job title field
@@ -28,7 +33,9 @@
             input.className = 'form-control';
             input.name = 'job_titles_dynamic[]';
             input.value = value;
+            
 
+            //Remove Button
             let removeButton = document.createElement('button');
             removeButton.type = 'button';
             removeButton.classList.add('btn', 'btn-danger');
@@ -38,8 +45,30 @@
                 updateJobTitles();
             };
 
+            // Up Button
+            let upButton = document.createElement('button');
+            upButton.type = 'button';
+            upButton.classList.add('btn', 'btn-secondary');
+            upButton.textContent = '↑';
+            upButton.onclick = function () {
+                moveUp(field);
+            };
+
+            // Down Button
+            let downButton = document.createElement('button');
+            downButton.type = 'button';
+            downButton.classList.add('btn', 'btn-secondary');
+            downButton.textContent = '↓';
+            downButton.onclick = function () {
+                moveDown(field);
+            };
+
+
             field.appendChild(input);
+            field.appendChild(upButton);
+            field.appendChild(downButton);
             field.appendChild(removeButton);
+
             container.appendChild(field);
         }
 
@@ -53,6 +82,24 @@
             let allJobTitles = Array.from(document.querySelectorAll('input[name="job_titles_dynamic[]"]'))
                 .map(input => input.value);
             jobTitlesInput.value = JSON.stringify(allJobTitles);
+        }
+
+        // Function to move a field up
+        function moveUp(field) {
+            let previous = field.previousElementSibling;
+            if (previous) {
+                container.insertBefore(field, previous);
+                updateJobTitles();
+            }
+        }
+
+        // Function to move a field down
+        function moveDown(field) {
+            let next = field.nextElementSibling;
+            if (next) {
+                container.insertBefore(next, field);
+                updateJobTitles();
+            }
         }
 
         // Trigger update when form is submitted

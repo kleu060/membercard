@@ -9,7 +9,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;// <---------------------- and this one
 use Illuminate\Database\Eloquent\Relations\HasOne;
-
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 
 class User extends Authenticatable
@@ -28,6 +28,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'relationship_type',
+        'relationship_id',
     ];
 
     /**
@@ -56,17 +58,9 @@ class User extends Authenticatable
     /**
      * Get the parent userable model (organization or individual).
      */
-    public function userable(): MorphTo
+    public function relationship(): MorphTo
     {
         return $this->morphTo();
     }
 
-    
-    /**
-     * @return HasOne
-     */
-    public function image(): HasOne
-    {
-        return $this->hasOne(Image::class);
-    }
 }
