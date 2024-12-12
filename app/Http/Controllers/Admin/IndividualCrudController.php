@@ -65,6 +65,7 @@ class IndividualCrudController extends CrudController
         }
         CRUD::setFromDb(); // set columns from db columns.
         CRUD::addButtonFromModelFunction('line', 'profileAction', 'profileButton', 'end');
+        CRUD::addButtonFromModelFunction('line', 'accountAction', 'accountButton', 'end');
 
     }
 

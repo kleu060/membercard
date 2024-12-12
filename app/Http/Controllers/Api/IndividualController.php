@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
 use App\Models\Individual;
+use App\Models\IndividualProfile;
 
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -54,6 +55,22 @@ class IndividualController extends Controller
             return response()->json([
                 "ERR" => "002",
                 "message" => "No profile found"
+            ]);
+        }
+    }
+
+    public function getIndividualProfile($route) {
+        $individual = Individual::where('route', $route)
+                                ->first();
+
+        $individualProfiles = IndividualProfile::where("individual_id", $individual->id)->get();
+        if ( $individualProfiles ){
+            return response()->json($individualProfiles);
+        }
+        else {
+            return response()->json([
+                "ERR" => "002",
+                "message" => "No individual profile found"
             ]);
         }
     }

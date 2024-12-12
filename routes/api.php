@@ -11,5 +11,6 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 Route::get('/individual/{route}/{profile_id?}', [IndividualController::class, 'show']);
+Route::get('/individualProfile/{route}', [IndividualController::class, 'getIndividualProfile']);
 Route::get('/downloadvcf/{route}/{profile_id?}', [IndividualController::class, 'downloadVcf']);
 

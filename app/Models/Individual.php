@@ -55,4 +55,11 @@ class Individual extends Model
                 </a>';
     }
 
+
+    public function accountButton() {
+        return '<a href="'.backpack_url('individual-account/create') .'/?individual_id='.$this->id.'" class="btn btn-sm btn-link" bp-button="individual-profile" data-style="zoom-in">
+                    <i class="la la-credit-card"></i> <span>Account</span>
+                </a>';
+    }
+
 }

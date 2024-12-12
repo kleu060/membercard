@@ -53,7 +53,6 @@ class IndividualProfileCrudController extends CrudController
     }
 
     
-
     /**
      * Define what happens when the List operation is loaded.
      * 
@@ -62,34 +61,12 @@ class IndividualProfileCrudController extends CrudController
      */
     protected function setupListOperation()
     {
-
-
-
-        // if (backpack_user()->can('admin actions')) {
-            
-            
-        // }
-        // else if (backpack_user()->can('organization actions')) {
-        //     $organizationId = backpack_user()->relationship_id;
-
-        //     CRUD::addClause('whereIn', 'individual_id', function ($query) use ($organizationId) {
-        //         $query->select('id') // Select the 'id' column from the individuals table
-        //               ->from('individuals')
-        //               ->where('organization_id', $organizationId);
-        //     });
-        // }
-        // else {
-        //     $individual_id = backpack_user()->relationship_id;
-        //     // Apply a query filter to only show profiles for the specific individual
-        //     CRUD::addClause('where', 'individual_id', $individual_id);
-        //     $individual = Individual::withCount('individualProfiles')->find($individual_id);
-
-        // }
-
-
+        
         $individual_id = request()->individual_id;
-
-        if (backpack_user()->can('organization actions')) {
+        if (backpack_user()->can('admin actions')) {
+            
+        }
+        else if (backpack_user()->can('organization actions')) {
             $organizationId = backpack_user()->relationship_id;
             // CRUD::addClause('whereIn', 'individual_id', function ($query) use ($organizationId) {
             //             $query->select('id') // Select the 'id' column from the individuals table
@@ -112,9 +89,13 @@ class IndividualProfileCrudController extends CrudController
 
         }
         elseif (backpack_user()->can('individual actions') ){
-
+            
+            if ($individual_id) {
+                // Apply a query filter to only show profiles for the specific individual
+                // dd($iid);
+                CRUD::addClause('where', 'individual_id', $individual_id);   
+            }
         }
-
         
         $individual = Individual::withCount('individualProfiles')->find($individual_id);
         if ( $individual_id) {
@@ -125,11 +106,8 @@ class IndividualProfileCrudController extends CrudController
         }
         // $ind_id = intval($individual_id);
 
-        if ($individual_id) {
-            // Apply a query filter to only show profiles for the specific individual
-            // dd($iid);
-            CRUD::addClause('where', 'individual_id', $individual_id);   
-        }
+        
+
         CRUD::setFromDb(); // set columns from db columns.
     }
 

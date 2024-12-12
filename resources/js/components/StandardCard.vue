@@ -6,6 +6,26 @@
             <div class="thumbnail-container">
                 <img class="thumbnail" :src="thumbnail" />
             </div>
+            <div class="select-profile">
+                <div class="profile-dropdown">
+                    <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Select Profile
+                    </button>
+                    <ul class="dropdown-menu profile-dropdown-menu">
+
+                        <li v-for="profile in localProfiles" :key="profile.id">
+                            <button class="dropdown-item" @click="selectProfile(profile.id)">
+                                {{ profile.profile_name }}
+                            </button>
+                        </li>
+
+<!--                         
+                        <li><a class="dropdown-item" href="#">Action</a></li>
+                        <li><a class="dropdown-item" href="#">Another action</a></li>
+                        <li><a class="dropdown-item" href="#">Something else here</a></li> -->
+                    </ul>
+                </div>
+            </div>
         </section>
         <section class="card-profile-body layout-intent">
             <div class="profile-name large-bold">{{ first_name }}{{ last_name }}</div>
@@ -43,6 +63,7 @@
     export default {
         mounted() {
             console.log('Component mounted.')
+            this.fetchIndividualProfile();
             this.fetchIndividualData();
         },
         props: {
@@ -53,6 +74,10 @@
             profileId: {
                 type: String,
                 default: ""
+            },
+            individualProfiles: {
+                type: Array,
+                default: []
             }
         },
         data() {
@@ -64,12 +89,15 @@
                 titles: null, // holds the API response data
                 description: "", // holds the API response data
                 contacts: null, // holds the API response data
+                localProfileId: this.profileId, // Initialize local state from prop
+                localProfiles: [...this.individualProfiles], // Initialize local state from prop
+
             };
         },
         methods: {
-            async fetchIndividualData(route, profileId = null) {
+            async fetchIndividualData() {
                 try {
-                    const response = await axios.get(`/api/individual/${this.route}/${this.profileId}`);
+                    const response = await axios.get(`/api/individual/${this.route}/${this.localProfileId}`);
                     
                     // Assign the response data to the component’s data properties
                     this.bannerImage = response.data.organizationImage.original_path; 
@@ -83,7 +111,26 @@
                 } catch (error) {
                     console.error("Error fetching individual data:", error);
                 }
-            }
+            },
+            async fetchIndividualProfile() {
+                try {
+                    const response = await axios.get(`/api/individualProfile/${this.route}`);
+                    console.log(response.data);
+                    this.localProfiles = response.data;
+                    // console.log(this. response.data);
+                    // this.$emit("update:individualProfiles", response.data); // Update parent state if using v-model
+                } catch (error) {
+                    console.error("Error fetching individual profile data:", error);
+                }
+
+            },
+            selectProfile(selectedProfileId) {
+                console.log("Selected profile:", selectedProfileId);
+                // this.$emit("update:profileId", profileId); // Notify parent of selection
+                this.localProfileId = selectedProfileId;
+                this.fetchIndividualData();
+            },
+            
         },
         computed: {
             formattedDescription() {

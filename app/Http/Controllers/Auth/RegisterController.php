@@ -9,9 +9,7 @@ use Backpack\CRUD\app\Http\Controllers\Auth\RegisterController as BackpackRegist
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
 
-
 use App\Models\Organization;
-
 use Spatie\Permission\Models\Role;
 
 
@@ -68,9 +66,9 @@ class RegisterController extends BackpackRegisterController
         ]);
 
         // Debugging: Check if the "Organization" role exists
-        $role = Role::where('name', 'Organization')->first();
-        if (!$role) {
-        }
+        // $role = Role::where('name', 'Organization')->first();
+        // if (!$role) {
+        // }
 
         // Assign the role to the user
         $user->assignRole('Organization');
