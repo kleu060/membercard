@@ -16,4 +16,6 @@ Route::group([
     'middleware' => ['web', backpack_middleware()],
 ], function () {
     Route::crud('user', \App\Http\Controllers\Admin\CustomUserCrudController::class);
+    Route::crud('permission', \Backpack\PermissionManager\app\Http\Controllers\PermissionCrudController::class);
+    Route::crud('role', \Backpack\PermissionManager\app\Http\Controllers\RoleCrudController::class);
 });

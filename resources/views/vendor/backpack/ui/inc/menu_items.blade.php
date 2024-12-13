@@ -11,7 +11,7 @@
     </x-backpack::menu-dropdown>
 @endif
 
-@if(backpack_user()->can('orgnaization actions')) 
+@if(backpack_user()->can('organization actions')) 
     <x-backpack::menu-item title="Organizations" icon="la la-question" :link="backpack_url('organization')" />
 @endif
 

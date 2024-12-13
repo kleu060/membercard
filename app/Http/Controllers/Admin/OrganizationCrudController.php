@@ -46,7 +46,7 @@ class OrganizationCrudController extends CrudController
             CRUD::allowAccess(['list', 'show', 'create', 'update', 'delete']);
         }
         else if (backpack_user()->can('organization actions')) {
-            CRUD::denyAccess(['create', 'de;ete']);
+            CRUD::denyAccess(['create', 'delete']);
         }
         else {
             CRUD::denyAccess(['list', 'show', 'create', 'update', 'delete']);
@@ -66,8 +66,13 @@ class OrganizationCrudController extends CrudController
      */
     protected function setupListOperation()
     {   
-        $organizationId = backpack_user()->relationship_id;
-        CRUD::addBaseClause('where', 'id', '=', $organizationId);
+
+        if ( backpack_user()->getRoleNames()->first() == "Organization" ) {
+            $organizationId = backpack_user()->relationship_id;
+            CRUD::addBaseClause('where', 'id', '=', $organizationId);
+        }
+        
+        
         CRUD::setFromDb(); // set columns from db columns.
 
     }
