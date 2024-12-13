@@ -43,8 +43,29 @@ class IndividualAccountCrudController extends CrudController
     }
 
 
-    public function create()
+    // public function create()
+    // {
+    //     $individual_id = request()->individual_id;
+
+    //     if ($individual_id) {
+    //         $user = User::where('relationship_id', $individual_id)
+    //                     ->where('relationship_type', 'App\Models\Individual')
+    //                     ->first();
+
+    //         if ($user) {
+    //             return redirect()->route('individual-account.edit', ['id' => $user->id]);
+    //         }
+    //     }
+
+    //     return parent::create(); // Proceed with the default Backpack create logic
+    // }
+
+    protected function setupCreateOperation()
     {
+        // Redirect to the edit page and immediately stop execution
+        // redirect()->route('individual-account.edit', ['id' => "22"])->send();
+        // exit; // Ensure no further code runs
+
         $individual_id = request()->individual_id;
 
         if ($individual_id) {
@@ -53,15 +74,12 @@ class IndividualAccountCrudController extends CrudController
                         ->first();
 
             if ($user) {
-                return redirect()->route('individual-account.edit', ['id' => $user->id]);
+                redirect()->route('individual-account.edit', ['id' => $user->id])->send();
+                exit();
             }
         }
 
-        return parent::create(); // Proceed with the default Backpack create logic
-    }
 
-    protected function setupCreateOperation()
-    {
         $individual_id = request()->individual_id;
         if ( $individual_id ) {
             $individual = Individual::find($individual_id);
