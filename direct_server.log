@@ -1,0 +1,179 @@
+> Ready on http://0.0.0.0:3000
+> Socket.IO server running at ws://0.0.0.0:3000/api/socketio
+ ○ Compiling / ...
+ ✓ Compiled / in 6.6s (1033 modules)
+ GET / 200 in 2192ms
+ ○ Compiling /api/auth/me ...
+ ✓ Compiled /api/auth/me in 1550ms (1101 modules)
+ GET /api/auth/me 401 in 1753ms
+ GET /api/auth/me 401 in 8ms
+ GET / 200 in 216ms
+ GET /api/auth/me 401 in 11ms
+ ⚠ Cross origin request detected from preview-chat-7a2dca1c-5d7b-4e71-8e99-6d9bcdd786e6.space.z.ai to /_next/* resource. In a future major version of Next.js, you will need to explicitly configure "allowedDevOrigins" in next.config to allow this.
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+ GET /api/auth/me 401 in 51ms
+ ✓ Compiled /api/auth/register in 473ms (1104 modules)
+prisma:query SELECT `main`.`User`.`id`, `main`.`User`.`email`, `main`.`User`.`name`, `main`.`User`.`avatar`, `main`.`User`.`createdAt`, `main`.`User`.`updatedAt` FROM `main`.`User` WHERE (`main`.`User`.`email` = ? AND 1=1) LIMIT ? OFFSET ?
+Registration error: Error [PrismaClientValidationError]: 
+Invalid `prisma.user.create()` invocation:
+
+{
+  data: {
+    email: "test@test.com",
+    name: "test",
+    password: "$2b$12$9PfylpPKpBnyTIAh6vVEWuc1MVNlUcYHJicbr/npZPv6eOZPb9oV6",
+    ~~~~~~~~
+?   id?: String,
+?   avatar?: String | Null,
+?   createdAt?: DateTime,
+?   updatedAt?: DateTime,
+?   businessCards?: BusinessCardCreateNestedManyWithoutUserInput,
+?   savedCards?: SavedCardCreateNestedManyWithoutUserInput,
+?   accounts?: AccountCreateNestedManyWithoutUserInput
+  },
+  select: {
+    id: true,
+    email: true,
+    name: true,
+    avatar: true,
+    createdAt: true
+  }
+}
+
+Unknown argument `password`. Available options are marked with ?.
+    at async POST (src/app/api/auth/register/route.ts:25:17)
+  23 |
+  24 |     // Create user
+> 25 |     const user = await db.user.create({
+     |                 ^
+  26 |       data: {
+  27 |         email,
+  28 |         name, {
+  clientVersion: '6.13.0'
+}
+ POST /api/auth/register 500 in 1164ms
+prisma:query SELECT `main`.`User`.`id`, `main`.`User`.`email`, `main`.`User`.`name`, `main`.`User`.`avatar`, `main`.`User`.`createdAt`, `main`.`User`.`updatedAt` FROM `main`.`User` WHERE (`main`.`User`.`email` = ? AND 1=1) LIMIT ? OFFSET ?
+Registration error: Error [PrismaClientValidationError]: 
+Invalid `prisma.user.create()` invocation:
+
+{
+  data: {
+    email: "test@test.com",
+    name: "test",
+    password: "$2b$12$ORia6YcaqlUA9au4KH2HhOLb2DF31bkXJefyTj6efepp65qkMuIzq",
+    ~~~~~~~~
+?   id?: String,
+?   avatar?: String | Null,
+?   createdAt?: DateTime,
+?   updatedAt?: DateTime,
+?   businessCards?: BusinessCardCreateNestedManyWithoutUserInput,
+?   savedCards?: SavedCardCreateNestedManyWithoutUserInput,
+?   accounts?: AccountCreateNestedManyWithoutUserInput
+  },
+  select: {
+    id: true,
+    email: true,
+    name: true,
+    avatar: true,
+    createdAt: true
+  }
+}
+
+Unknown argument `password`. Available options are marked with ?.
+    at async POST (src/app/api/auth/register/route.ts:25:17)
+  23 |
+  24 |     // Create user
+> 25 |     const user = await db.user.create({
+     |                 ^
+  26 |       data: {
+  27 |         email,
+  28 |         name, {
+  clientVersion: '6.13.0'
+}
+ POST /api/auth/register 500 in 487ms
+ ✓ Compiled /api/auth/login in 446ms (634 modules)
+prisma:query SELECT 1
+prisma:query SELECT `main`.`User`.`id`, `main`.`User`.`email`, `main`.`User`.`name`, `main`.`User`.`avatar`, `main`.`User`.`createdAt`, `main`.`User`.`updatedAt` FROM `main`.`User` WHERE (`main`.`User`.`email` = ? AND 1=1) LIMIT ? OFFSET ?
+ POST /api/auth/login 401 in 533ms
+ ✓ Compiled /api/auth/register in 57ms (168 modules)
+prisma:query SELECT `main`.`User`.`id`, `main`.`User`.`email`, `main`.`User`.`name`, `main`.`User`.`avatar`, `main`.`User`.`createdAt`, `main`.`User`.`updatedAt` FROM `main`.`User` WHERE (`main`.`User`.`email` = ? AND 1=1) LIMIT ? OFFSET ?
+Registration error: Error [PrismaClientValidationError]: 
+Invalid `prisma.user.create()` invocation:
+
+{
+  data: {
+    email: "test@test.com",
+    name: "test",
+    password: "$2b$12$XwAJdgKHw3yNE1rd7aRxP.z2huwoEK8oYlNffcf38JtNnGJvrudMS",
+    ~~~~~~~~
+?   id?: String,
+?   avatar?: String | Null,
+?   createdAt?: DateTime,
+?   updatedAt?: DateTime,
+?   businessCards?: BusinessCardCreateNestedManyWithoutUserInput,
+?   savedCards?: SavedCardCreateNestedManyWithoutUserInput,
+?   accounts?: AccountCreateNestedManyWithoutUserInput
+  },
+  select: {
+    id: true,
+    email: true,
+    name: true,
+    avatar: true,
+    createdAt: true
+  }
+}
+
+Unknown argument `password`. Available options are marked with ?.
+    at async POST (src/app/api/auth/register/route.ts:25:17)
+  23 |
+  24 |     // Create user
+> 25 |     const user = await db.user.create({
+     |                 ^
+  26 |       data: {
+  27 |         email,
+  28 |         name, {
+  clientVersion: '6.13.0'
+}
+ POST /api/auth/register 500 in 624ms
+ ✓ Compiled / in 464ms (636 modules)
+ GET / 200 in 791ms
+ ✓ Compiled /favicon.ico in 174ms (638 modules)
+ GET /favicon.ico 200 in 211ms
+ ✓ Compiled /api/auth/me in 265ms (640 modules)
+ GET /api/auth/me 401 in 314ms
+ GET /api/auth/me 401 in 7ms
+ GET / 200 in 194ms
+ GET /favicon.ico 200 in 13ms
+ GET /api/auth/me 401 in 7ms
+ GET /api/auth/me 401 in 7ms
+ GET / 200 in 48ms
+ GET /api/auth/me 401 in 9ms
+ GET /api/auth/me 401 in 9ms
+ GET / 200 in 44ms
+ GET / 200 in 48ms
+ GET /api/auth/me 401 in 6ms
+ GET /api/auth/me 401 in 8ms
+ GET / 200 in 47ms
+ GET /api/auth/me 401 in 7ms
+ GET /api/auth/me 401 in 6ms
+ GET / 200 in 39ms
+ GET /api/auth/me 401 in 6ms
+ GET /api/auth/me 401 in 8ms
+ GET / 200 in 41ms
+ GET /api/auth/me 401 in 11ms
+ GET /api/auth/me 401 in 5ms
+ GET / 200 in 41ms
+ GET /api/auth/me 401 in 6ms
+ GET /api/auth/me 401 in 5ms
+ GET / 200 in 46ms
+ GET / 200 in 41ms
+ GET / 200 in 40ms
+ GET / 200 in 39ms
+ GET /api/auth/me 401 in 6ms
+ GET /api/auth/me 401 in 10ms
+ GET / 200 in 44ms
+ GET /api/auth/me 401 in 6ms
+ GET /api/auth/me 401 in 5ms
+ GET / 200 in 44ms
+ GET /api/auth/me 401 in 6ms
+ GET /api/auth/me 401 in 7ms

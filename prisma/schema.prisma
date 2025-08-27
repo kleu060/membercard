@@ -1,0 +1,1002 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  name          String?
+  password      String?
+  avatar        String?
+  location      String?
+  role          String   @default("user") // user, admin
+  subscriptionPlan String   @default("free") // free, professional, enterprise
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relations
+  businessCards         BusinessCard[]
+  savedCards            SavedCard[]
+  scannedCards          ScannedCard[]
+  accounts              Account[]
+  activeDirectoryConfigs ActiveDirectoryConfig[]
+  iPhoneSyncConfigs     IPhoneSyncConfig[]
+  appointments          Appointment[]
+  calendarIntegrations  CalendarIntegration[]
+  jobProfile            JobProfile?
+  bookingSettings       BookingSettings?
+  leads                 Lead[]
+  assignedLeads         Lead[] @relation("AssignedLeads")
+  leadForms             LeadForm[]
+  leadInteractions      LeadInteraction[]
+  leadActivities        LeadActivity[]
+  // Phase 2: Email Automation Relations
+  emailTemplates        EmailTemplate[]
+  emailCampaigns       EmailCampaign[]
+  emailAutomations     EmailAutomation[]
+  // Phase 2: Advanced Segmentation Relations
+  leadSegments          LeadSegment[]
+  // Phase 2: Team Collaboration Relations
+  ledTeams              Team[]
+  teamMemberships       TeamMember[]
+  leadAssignments       LeadAssignment[]
+  assignedLeads2        LeadAssignment[] @relation("Assigner")
+  teamCollaborations    TeamCollaboration[]
+  // Phase 2: Mobile Optimization Relations
+  mobileDevices         MobileDevice[]
+  pushNotifications     PushNotification[]
+  offlineSyncs          OfflineSync[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([provider, providerAccountId])
+}
+
+model BusinessCard {
+  id              String   @id @default(cuid())
+  userId          String
+  name            String
+  company         String?
+  position        String?
+  phone           String?
+  officePhone     String?
+  email           String?
+  address         String?
+  website         String?
+  bio             String?
+  avatar          String?
+  coverPhoto      String?
+  logo            String?
+  location        String?
+  template        String?  @default("modern-blue")
+  isPublic        Boolean  @default(true)
+  viewCount       Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  socialLinks     SocialLink[]
+  products        Product[]
+  industryTags    IndustryTag[]
+  savedCards      SavedCard[]
+  appointments    Appointment[]
+  availability    AppointmentAvailability[]
+  leads           Lead[]
+  
+  @@index([userId])
+}
+
+model SocialLink {
+  id          String  @id @default(cuid())
+  cardId      String
+  platform    String
+  url         String
+  username    String?
+  
+  businessCard BusinessCard @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  
+  @@index([cardId])
+}
+
+model Product {
+  id          String  @id @default(cuid())
+  cardId      String
+  name        String
+  description String?
+  image       String?
+  
+  businessCard BusinessCard @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  photos       ProductPhoto[]
+  links        ProductLink[]
+  
+  @@index([cardId])
+}
+
+model ProductPhoto {
+  id        String  @id @default(cuid())
+  productId String
+  url       String
+  createdAt DateTime @default(now())
+  
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  @@index([productId])
+}
+
+model ProductLink {
+  id        String  @id @default(cuid())
+  productId String
+  title     String
+  url       String
+  createdAt DateTime @default(now())
+  
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  @@index([productId])
+}
+
+model IndustryTag {
+  id      String  @id @default(cuid())
+  cardId  String
+  tag     String
+  
+  businessCard BusinessCard @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  
+  @@index([cardId])
+  @@unique([cardId, tag])
+}
+
+model SavedCard {
+  id      String  @id @default(cuid())
+  userId  String
+  cardId  String
+  notes   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  businessCard BusinessCard @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  tags        ContactTag[]
+  
+  @@unique([userId, cardId])
+  @@index([userId])
+  @@index([cardId])
+}
+
+model ScannedCard {
+  id        String   @id @default(cuid())
+  userId    String
+  imageUrl  String
+  name      String?
+  company   String?
+  title     String?
+  email     String?
+  phone     String?
+  address   String?
+  website   String?
+  notes     String?
+  ocrData   String   // JSON data from OCR
+  tags      String   // JSON array of tags
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model ActiveDirectoryConfig {
+  id                  String   @id @default(cuid())
+  userId              String
+  domain              String
+  serverUrl           String
+  username            String
+  password            String   // Note: In production, this should be encrypted
+  baseDn              String
+  userFilter          String?
+  syncInterval        Int      @default(3600) // seconds
+  isActive            Boolean  @default(true)
+  lastSyncAt          DateTime?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  
+  user                User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  syncLogs            ActiveDirectorySyncLog[]
+  
+  @@index([userId])
+}
+
+model ActiveDirectorySyncLog {
+  id                  String   @id @default(cuid())
+  configId            String
+  status              String   // 'success', 'error', 'warning'
+  message             String?
+  usersSynced         Int      @default(0)
+  usersUpdated        Int      @default(0)
+  usersCreated        Int      @default(0)
+  errors              String?  // JSON array of errors
+  duration            Int?     // milliseconds
+  syncAt              DateTime @default(now())
+  
+  config              ActiveDirectoryConfig  @relation(fields: [configId], references: [id], onDelete: Cascade)
+  
+  @@index([configId])
+  @@index([syncAt])
+}
+
+model ContactTag {
+  id         String  @id @default(cuid())
+  savedCardId String
+  tag        String
+  color      String? @default("3B82F6") // Default blue color (without #)
+  createdAt  DateTime @default(now())
+  
+  // Relations
+  savedCard SavedCard @relation(fields: [savedCardId], references: [id], onDelete: Cascade)
+  
+  @@index([savedCardId])
+  @@unique([savedCardId, tag])
+}
+
+model IPhoneSyncConfig {
+  id                  String   @id @default(cuid())
+  userId              String
+  cardDavUrl          String?  @unique // CardDAV server URL for this user
+  username            String?  // CardDAV username
+  password            String?  // CardDAV password (encrypted in production)
+  syncInterval        Int      @default(3600) // seconds
+  isActive            Boolean  @default(true)
+  lastSyncAt          DateTime?
+  syncDirection       String   @default("both") // "import", "export", "both"
+  autoSync            Boolean  @default(false)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  
+  // Relations
+  user                User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  syncLogs            IPhoneSyncLog[]
+  
+  @@index([userId])
+}
+
+model IPhoneSyncLog {
+  id                  String   @id @default(cuid())
+  configId            String
+  status              String   // 'success', 'error', 'warning'
+  message             String?
+  contactsSynced      Int      @default(0)
+  contactsCreated     Int      @default(0)
+  contactsUpdated     Int      @default(0)
+  errors              String?  // JSON array of errors
+  duration            Int?     // milliseconds
+  syncAt              DateTime @default(now())
+  
+  // Relations
+  config              IPhoneSyncConfig  @relation(fields: [configId], references: [id], onDelete: Cascade)
+  
+  @@index([configId])
+  @@index([syncAt])
+}
+
+// Appointment Models
+model Appointment {
+  id              String   @id @default(cuid())
+  cardId          String
+  userId          String   // The user who made the appointment
+  title           String
+  description     String?
+  appointmentDate DateTime
+  duration        Int      @default(30) // minutes
+  status          String   @default("pending") // pending, confirmed, cancelled, completed
+  contactName     String
+  contactEmail    String?
+  contactPhone    String?
+  notes           String?
+  calendarEventId String?  // ID from external calendar integration
+  calendarIntegrationId String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  businessCard    BusinessCard        @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  user            User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  calendarIntegration CalendarIntegration? @relation(fields: [calendarIntegrationId], references: [id])
+  
+  @@index([cardId])
+  @@index([userId])
+  @@index([appointmentDate])
+  @@index([status])
+  @@index([calendarIntegrationId])
+}
+
+model AppointmentAvailability {
+  id              String   @id @default(cuid())
+  cardId          String
+  dayOfWeek       Int      // 0-6 (Sunday-Saturday)
+  startTime       String   // HH:mm format
+  endTime         String   // HH:mm format
+  isAvailable     Boolean  @default(true)
+  maxAppointments Int      @default(1)
+  bufferTime      Int      @default(0) // minutes between appointments
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  businessCard    BusinessCard @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  
+  @@index([cardId])
+  @@index([dayOfWeek])
+  @@unique([cardId, dayOfWeek, startTime])
+}
+
+model CalendarIntegration {
+  id              String   @id @default(cuid())
+  userId          String
+  provider        String   // 'google', 'outlook', 'apple'
+  accessToken     String
+  refreshToken    String?
+  expiresAt       DateTime?
+  isActive        Boolean  @default(true)
+  calendarId      String?  // Specific calendar ID
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  appointments    Appointment[]
+  
+  @@index([userId])
+  @@index([provider])
+}
+
+// Job Profile Models
+model JobProfile {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  summary         String?
+  resumeUrl       String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  careerHistory   CareerHistory[]
+  education       Education[]
+  certifications  Certification[]
+  skills          Skill[]
+  savedSearches   SavedSearch[]
+  savedJobs       SavedJob[]
+  applications    Application[]
+  
+  @@index([userId])
+}
+
+model CareerHistory {
+  id              String   @id @default(cuid())
+  profileId       String
+  title           String
+  company         String
+  startDate       DateTime
+  endDate         DateTime?
+  isCurrent       Boolean  @default(false)
+  description     String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  profile         JobProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  
+  @@index([profileId])
+}
+
+model Education {
+  id              String   @id @default(cuid())
+  profileId       String
+  institution     String
+  degree          String
+  field           String?
+  startDate       DateTime
+  endDate         DateTime?
+  isCurrent       Boolean  @default(false)
+  gpa             Float?
+  description     String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  profile         JobProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  
+  @@index([profileId])
+}
+
+model Certification {
+  id              String   @id @default(cuid())
+  profileId       String
+  name            String
+  issuer          String
+  issueDate       DateTime?
+  expiryDate      DateTime?
+  credentialNumber String?
+  description     String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  profile         JobProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  
+  @@index([profileId])
+}
+
+model Skill {
+  id              String   @id @default(cuid())
+  profileId       String
+  name            String
+  level           String?  // 'beginner', 'intermediate', 'advanced', 'expert'
+  yearsExperience Int?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt()
+  
+  // Relations
+  profile         JobProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  
+  @@index([profileId])
+  @@unique([profileId, name])
+}
+
+model SavedSearch {
+  id              String   @id @default(cuid())
+  profileId       String
+  name            String
+  keywords        String?
+  industry        String?
+  location        String?
+  jobType         String?
+  remoteOption   String?
+  salaryRange    String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt()
+  
+  // Relations
+  profile         JobProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  
+  @@index([profileId])
+}
+
+model SavedJob {
+  id              String   @id @default(cuid())
+  profileId       String
+  jobId           String   // Foreign key to jobs table
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt()
+  
+  // Relations
+  profile         JobProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  
+  @@index([profileId])
+  @@unique([profileId, jobId])
+}
+
+model Application {
+  id              String   @id @default(cuid())
+  profileId       String
+  jobId           String   // Foreign key to jobs table
+  status          String   // 'applied', 'interviewing', 'rejected', 'offered', 'accepted', 'declined'
+  notes           String?
+  appliedAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt()
+  
+  // Relations
+  profile         JobProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  
+  @@index([profileId])
+  @@index([jobId])
+}
+
+// Booking Management Models
+model BookingSettings {
+  id                  String   @id @default(cuid())
+  userId              String   @unique
+  locationType        String   // 'in-person', 'online', 'both'
+  locationAddress     String?
+  onlineMeetingLink   String?
+  basePrice           Float    @default(0)
+  currency            String   @default("TWD")
+  duration            Int      @default(60) // minutes
+  maxAdvanceDays      Int      @default(30) // days in advance users can book
+  minAdvanceHours     Int      @default(2) // minimum hours in advance for booking
+  cancellationPolicy  String?
+  lunchBreakStart     String?  // HH:mm format
+  lunchBreakEnd       String?  // HH:mm format
+  // Working hours fields
+  monEnabled          Boolean  @default(true)
+  monStart            String   @default("09:00")
+  monEnd              String   @default("18:00")
+  tueEnabled          Boolean  @default(true)
+  tueStart            String   @default("09:00")
+  tueEnd              String   @default("18:00")
+  wedEnabled          Boolean  @default(true)
+  wedStart            String   @default("09:00")
+  wedEnd              String   @default("18:00")
+  thuEnabled          Boolean  @default(true)
+  thuStart            String   @default("09:00")
+  thuEnd              String   @default("18:00")
+  friEnabled          Boolean  @default(true)
+  friStart            String   @default("09:00")
+  friEnd              String   @default("18:00")
+  satEnabled          Boolean  @default(false)
+  satStart            String   @default("09:00")
+  satEnd              String   @default("18:00")
+  sunEnabled          Boolean  @default(false)
+  sunStart            String   @default("09:00")
+  sunEnd              String   @default("18:00")
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  
+  // Relations
+  user                User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  timeSlots           TimeSlot[]
+  
+  @@index([userId])
+}
+
+model TimeSlot {
+  id                  String   @id @default(cuid())
+  bookingSettingsId   String
+  dayOfWeek           Int      // 0-6 (Sunday-Saturday)
+  startTime           String   // HH:mm format
+  endTime             String   // HH:mm format
+  isAvailable         Boolean  @default(true)
+  maxBookings         Int      @default(1)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  
+  // Relations
+  bookingSettings     BookingSettings @relation(fields: [bookingSettingsId], references: [id], onDelete: Cascade)
+  
+  @@index([bookingSettingsId])
+  @@index([dayOfWeek])
+  @@unique([bookingSettingsId, dayOfWeek, startTime])
+}
+
+// Lead Management Models
+model Lead {
+  id              String   @id @default(cuid())
+  userId          String
+  name            String
+  email           String?
+  phone           String?
+  company         String?
+  position        String?
+  message         String?
+  interest        String   @default("general")
+  source          String   @default("manual")
+  status          String   @default("new") // new, contacted, qualified, proposal_sent, converted, lost
+  priority        String   @default("medium") // low, medium, high, urgent
+  score           Int      @default(0)
+  estimatedValue  Float?
+  currency        String   @default("TWD")
+  website         String?
+  linkedin        String?
+  twitter         String?
+  address         String?
+  city            String?
+  country         String?
+  tags            String?  // JSON array of tags
+  notes           String?
+  lastContactAt   DateTime?
+  businessCardId  String?
+  assignedUserId  String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  businessCard    BusinessCard?   @relation(fields: [businessCardId], references: [id])
+  assignedUser    User?          @relation("AssignedLeads", fields: [assignedUserId], references: [id])
+  interactions    LeadInteraction[]
+  activities      LeadActivity[]
+  formSubmissions FormSubmission[]
+  // Phase 2: Email Automation Relations
+  emailDeliveries EmailDelivery[]
+  // Phase 2: Advanced Segmentation Relations
+  segmentMemberships LeadSegmentMembership[]
+  // Phase 2: Team Collaboration Relations
+  assignments     LeadAssignment[]
+  collaborations  TeamCollaboration[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([priority])
+  @@index([source])
+  @@index([score])
+  @@index([createdAt])
+}
+
+model LeadInteraction {
+  id          String   @id @default(cuid())
+  leadId      String
+  type        String   // call, email, meeting, video, coffee, other
+  direction   String   // inbound, outbound
+  title       String
+  description String?
+  duration    Int?     // minutes
+  userId      String
+  createdAt   DateTime @default(now())
+
+  // Relations
+  lead        Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@index([leadId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model LeadActivity {
+  id          String   @id @default(cuid())
+  leadId      String
+  type        String   // created, updated, status_changed, interaction_logged, etc.
+  title       String
+  description String?
+  userId      String
+  createdAt   DateTime @default(now())
+
+  // Relations
+  lead        Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@index([leadId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model LeadForm {
+  id          String   @id @default(cuid())
+  userId      String
+  name        String
+  description String?
+  isActive    Boolean  @default(true)
+  isPublic    Boolean  @default(true)
+  embedCode   String   // HTML/JS embed code
+  fields      String   // JSON array of form fields
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  submissions FormSubmission[]
+
+  @@index([userId])
+  @@index([isActive])
+}
+
+model FormSubmission {
+  id          String   @id @default(cuid())
+  formId      String
+  leadId      String?
+  data        String   // JSON form data
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+
+  // Relations
+  form        LeadForm @relation(fields: [formId], references: [id], onDelete: Cascade)
+  lead        Lead?    @relation(fields: [leadId], references: [id])
+
+  @@index([formId])
+  @@index([leadId])
+  @@index([createdAt])
+}
+
+// Phase 2: Email Automation Models
+model EmailTemplate {
+  id          String   @id @default(cuid())
+  userId      String
+  name        String
+  subject     String
+  content     String   // HTML content
+  type        String   @default("campaign") // campaign, automated, followup
+  category    String?  // welcome, followup, newsletter, promotion
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user        User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  campaigns   EmailCampaign[]
+  automations EmailAutomation[]
+
+  @@index([userId])
+  @@index([isActive])
+  @@index([type])
+}
+
+model EmailCampaign {
+  id            String   @id @default(cuid())
+  userId        String
+  templateId    String
+  name          String
+  description   String?
+  status        String   @default("draft") // draft, scheduled, active, paused, completed
+  scheduleType  String   @default("immediate") // immediate, scheduled, recurring
+  scheduledAt   DateTime?
+  completedAt   DateTime?
+  targetSegment String?  // JSON segment criteria
+  sentCount     Int      @default(0)
+  deliveredCount Int     @default(0)
+  openedCount   Int      @default(0)
+  clickedCount  Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  template      EmailTemplate   @relation(fields: [templateId], references: [id])
+  deliveries    EmailDelivery[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([scheduleType])
+  @@index([createdAt])
+}
+
+model EmailAutomation {
+  id            String   @id @default(cuid())
+  userId        String
+  templateId    String
+  name          String
+  description   String?
+  triggerType   String   // time_based, action_based, behavior_based
+  triggerConfig String   // JSON trigger configuration
+  isActive      Boolean  @default(true)
+  lastRunAt     DateTime?
+  nextRunAt     DateTime?
+  runCount      Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  template      EmailTemplate   @relation(fields: [templateId], references: [id])
+
+  @@index([userId])
+  @@index([triggerType])
+  @@index([isActive])
+}
+
+model EmailDelivery {
+  id          String   @id @default(cuid())
+  campaignId  String?
+  leadId      String
+  email       String
+  subject     String
+  status      String   @default("pending") // pending, sent, delivered, opened, clicked, bounced, failed
+  sentAt      DateTime?
+  deliveredAt DateTime?
+  openedAt    DateTime?
+  clickedAt   DateTime?
+  bouncedAt   DateTime?
+  errorMessage String?
+  createdAt   DateTime @default(now())
+
+  // Relations
+  campaign    EmailCampaign? @relation(fields: [campaignId], references: [id])
+  lead        Lead           @relation(fields: [leadId], references: [id])
+
+  @@index([campaignId])
+  @@index([leadId])
+  @@index([status])
+  @@index([sentAt])
+}
+
+// Phase 2: Advanced Segmentation Models
+model LeadSegment {
+  id          String   @id @default(cuid())
+  userId      String
+  name        String
+  description String?
+  criteria    String   // JSON segment criteria
+  isActive    Boolean  @default(true)
+  isDynamic   Boolean  @default(true) // true for dynamic, false for static
+  leadCount   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  segmentMemberships LeadSegmentMembership[]
+
+  @@index([userId])
+  @@index([isActive])
+  @@index([isDynamic])
+}
+
+model LeadSegmentMembership {
+  id         String   @id @default(cuid())
+  segmentId  String
+  leadId     String
+  addedAt    DateTime @default(now())
+
+  // Relations
+  segment    LeadSegment @relation(fields: [segmentId], references: [id], onDelete: Cascade)
+  lead       Lead        @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@unique([segmentId, leadId])
+  @@index([segmentId])
+  @@index([leadId])
+}
+
+// Phase 2: Team Collaboration Models
+model Team {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  leaderId    String
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  leader      User               @relation(fields: [leaderId], references: [id])
+  members     TeamMember[]
+  assignments LeadAssignment[]
+  collaborations TeamCollaboration[]
+
+  @@index([leaderId])
+  @@index([isActive])
+}
+
+model TeamMember {
+  id          String   @id @default(cuid())
+  teamId      String
+  userId      String
+  role        String   @default("member") // leader, admin, member
+  joinedAt    DateTime @default(now())
+
+  // Relations
+  team        Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user        User   @relation(fields: [userId], references: [id])
+
+  @@unique([teamId, userId])
+  @@index([teamId])
+  @@index([userId])
+}
+
+model LeadAssignment {
+  id          String   @id @default(cuid())
+  leadId      String
+  teamId      String?
+  userId      String
+  assignedBy  String
+  assignedAt  DateTime @default(now())
+  status      String   @default("active") // active, reassigned, completed
+  notes       String?
+
+  // Relations
+  lead        Lead           @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  team        Team?          @relation(fields: [teamId], references: [id])
+  user        User           @relation(fields: [userId], references: [id])
+  assigner    User           @relation("Assigner", fields: [assignedBy], references: [id])
+
+  @@index([leadId])
+  @@index([teamId])
+  @@index([userId])
+  @@index([status])
+}
+
+model TeamCollaboration {
+  id          String   @id @default(cuid())
+  leadId      String
+  teamId      String
+  type        String   // comment, mention, update, reminder
+  content     String
+  userId      String
+  mentionedUsers String? // JSON array of mentioned user IDs
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  // Relations
+  lead        Lead   @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  team        Team   @relation(fields: [teamId], references: [id])
+  user        User   @relation(fields: [userId], references: [id])
+
+  @@index([leadId])
+  @@index([teamId])
+  @@index([userId])
+  @@index([isRead])
+}
+
+// Phase 2: Mobile Optimization Models
+model MobileDevice {
+  id          String   @id @default(cuid())
+  userId      String
+  deviceType  String   // ios, android, web
+  deviceToken String?
+  isActive    Boolean  @default(true)
+  lastSeenAt  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user        User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  notifications PushNotification[]
+
+  @@index([userId])
+  @@index([deviceType])
+  @@index([isActive])
+}
+
+model PushNotification {
+  id          String   @id @default(cuid())
+  userId      String
+  deviceId    String?
+  type        String   // lead_update, assignment, reminder, campaign
+  title       String
+  message     String
+  data        String?  // JSON additional data
+  status      String   @default("pending") // pending, sent, delivered, read
+  sentAt      DateTime?
+  deliveredAt DateTime?
+  readAt      DateTime?
+  createdAt   DateTime @default(now())
+
+  // Relations
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  device      MobileDevice?  @relation(fields: [deviceId], references: [id])
+
+  @@index([userId])
+  @@index([deviceId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model OfflineSync {
+  id          String   @id @default(cuid())
+  userId      String
+  deviceType  String
+  entityType  String   // lead, activity, interaction
+  entityId    String
+  action      String   // create, update, delete
+  data        String   // JSON entity data
+  status      String   @default("pending") // pending, synced, failed
+  syncedAt    DateTime?
+  createdAt   DateTime @default(now())
+
+  // Relations
+  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([deviceType])
+  @@index([status])
+  @@index([createdAt])
+}
